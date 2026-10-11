@@ -118,6 +118,6 @@ cp -r /tmp/omnixenon-skills/skills/read-back ~/.agents/skills/   # everything el
 
 ## About
 
-We're [Omnixenon](https://github.com/Omnixenon), two brothers.
+Made by [Omnixenon](https://github.com/Omnixenon).
 
 MIT licensed, see [LICENSE](LICENSE). Issues and pull requests are welcome, and so are reports of a read-back that got something wrong.
