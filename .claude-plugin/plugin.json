@@ -1,9 +1,0 @@
-{
-  "name": "omnixenon-skills",
-  "description": "read-back and other small agent skills",
-  "version": "0.1.0",
-  "author": { "name": "Omnixenon", "url": "https://github.com/Omnixenon" },
-  "homepage": "https://github.com/Omnixenon/skills",
-  "repository": "https://github.com/Omnixenon/skills",
-  "license": "MIT"
-}

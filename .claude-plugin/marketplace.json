@@ -4,9 +4,10 @@
   "owner": { "name": "Omnixenon", "url": "https://github.com/Omnixenon" },
   "plugins": [
     {
-      "name": "omnixenon-skills",
-      "source": "./",
-      "description": "read-back and other small agent skills"
+      "name": "read-back",
+      "source": { "source": "github", "repo": "Omnixenon/read-back" },
+      "description": "Read your prompt back to you, intent and direction, before any work starts",
+      "category": "productivity"
     }
   ]
 }

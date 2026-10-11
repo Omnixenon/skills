@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { skillFaults, treeFaults } from "./gate";
+import { pluginFaults, skillFaults, treeFaults } from "./gate";
 
 const skill = (front: string) => `---\n${front}\n---\n\nBody.\n`;
 
@@ -24,4 +24,23 @@ test("tree: skills/ holds only SKILL.md and references; artifacts and unlisted r
   expect(treeFaults(["skills/a/SKILL.md", "skills/a/references/b.md", "README.md"])).toEqual([]);
   const f = treeFaults(["skills/a/run.sh", "skills/a/NOTES.md", "docs/x.md", "stray.txt"]).join("\n");
   for (const bad of ["skills/a/run.sh", "skills/a/NOTES.md", "docs/x.md: under docs/", "stray.txt: a root entry"]) expect(f).toContain(bad);
+});
+
+test("plugin: remote entries need no plugin.json; local ones must match it", () => {
+  const files = (market: unknown, plugin?: unknown) => (f: string) => {
+    const v = f.endsWith("marketplace.json") ? market : plugin;
+    if (v === undefined) throw new Error("ENOENT");
+    return JSON.stringify(v);
+  };
+  const github = { name: "read-back", source: { source: "github", repo: "Omnixenon/read-back" } };
+  expect(pluginFaults(files({ plugins: [github] }))).toEqual([]);
+  expect(pluginFaults(files({ plugins: [{ name: "a", source: "./" }] }, { name: "a" }))).toEqual([]);
+  const one = (market: unknown, says: string, plugin?: unknown) => expect(pluginFaults(files(market, plugin)).join("\n")).toContain(says);
+  one({ plugins: [] }, "no plugins");
+  one({ plugins: [{ name: "a", source: "./" }] }, "plugin.json: missing");
+  one({ plugins: [{ name: "a", source: "./" }] }, "isn't plugin.json's name", { name: "b" });
+  one({ plugins: [{ name: "a", source: "../a" }] }, 'starts with "./"');
+  one({ plugins: [{ ...github, source: { source: "github", repo: "read-back" } }] }, "owner/name");
+  one({ plugins: [{ ...github, source: { source: "npm" } }] }, "neither");
+  one({ plugins: [{ ...github, name: "Bad Name" }] }, "lowercase words");
 });

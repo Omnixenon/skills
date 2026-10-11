@@ -61,7 +61,9 @@ export function skillFaults(folder: string, text: string): string[] {
   return out;
 }
 
-/** .claude-plugin's two manifests parse, and every marketplace entry names this plugin. */
+const REPO = /^[\w.-]+\/[\w.-]+$/;
+
+/** marketplace.json parses and lists plugins. A local entry ("./…") is this repo's plugin, so plugin.json must exist and share its name; a github entry names an owner/repo. */
 export function pluginFaults(read: (f: string) => string): string[] {
   const parse = (f: string) => {
     try {
@@ -70,13 +72,23 @@ export function pluginFaults(read: (f: string) => string): string[] {
       return `${f}: missing or not JSON (${e instanceof Error ? e.message : e})`;
     }
   };
-  const plugin = parse(".claude-plugin/plugin.json");
   const market = parse(".claude-plugin/marketplace.json");
-  const bad = [plugin, market].filter((x) => typeof x === "string");
-  if (bad.length) return bad;
-  const names: unknown[] = Array.isArray(market.plugins) ? market.plugins.map((p: { name?: unknown }) => p?.name) : [];
-  if (!names.length) return [".claude-plugin/marketplace.json: no plugins"];
-  return names.filter((n) => n !== plugin.name).map((n) => `.claude-plugin/marketplace.json: plugin "${n}" isn't plugin.json's name "${plugin.name}"`);
+  if (typeof market === "string") return [market];
+  const entries: { name?: unknown; source?: unknown }[] = Array.isArray(market.plugins) ? market.plugins : [];
+  if (!entries.length) return [".claude-plugin/marketplace.json: no plugins"];
+  return entries.flatMap(({ name, source }) => {
+    const where = `.claude-plugin/marketplace.json: plugin "${name}"`;
+    if (typeof name !== "string" || !NAME.test(name)) return [`${where}: name must be lowercase words joined by single hyphens`];
+    if (typeof source === "string") {
+      if (!source.startsWith("./")) return [`${where}: a local source starts with "./"`];
+      const plugin = parse(".claude-plugin/plugin.json");
+      if (typeof plugin === "string") return [plugin];
+      return plugin.name === name ? [] : [`${where} isn't plugin.json's name "${plugin.name}"`];
+    }
+    const s = source as { source?: unknown; repo?: unknown } | undefined;
+    if (s?.source === "github") return typeof s.repo === "string" && REPO.test(s.repo) ? [] : [`${where}: a github source needs repo "owner/name"`];
+    return [`${where}: source is neither "./…" nor { source: "github", repo }`];
+  });
 }
 
 export type Caps = Record<string, number>;
@@ -124,7 +136,7 @@ export function audit(staged: boolean): [string, string[]][] {
   const capped = { "agents-md-lines": ["AGENTS.md"], "readme-lines": ["README.md"], "skill-md-lines": skills };
   return [
     ["tree", treeOut],
-    ["skills", skills.length ? skills.flatMap((f) => skillFaults(f.split("/")[1]!, read(f))) : ["skills/: no <name>/SKILL.md"]],
+    ["skills", skills.flatMap((f) => skillFaults(f.split("/")[1]!, read(f)))],
     ["plugin", pluginFaults(read)],
     ["caps", caps ? capFaults(caps, parse(git("show", "HEAD:scripts/caps.json")), capped, read) : ["scripts/caps.json: missing or not JSON"]],
   ];
