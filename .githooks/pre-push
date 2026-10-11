@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+# The gate. There is no hosted CI, so nothing checks a push after this.
+set -e
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_PREFIX GIT_INDEX_FILE
+if ! command -v bun >/dev/null 2>&1; then
+  echo "✖ pre-push: REFUSED — bun is not installed, so the gate cannot run." >&2
+  exit 1
+fi
+# The gate reads the working tree; a dirty one isn't what's being pushed.
+# ponytail: assumes the push is HEAD; pushing another ref gates the wrong tree (omni's pre-push checks each ref).
+if [ -n "$(git status --porcelain)" ]; then
+  echo "✖ pre-push: the working tree is dirty, so the gate would check something other than what you push." >&2
+  git status --short >&2
+  exit 1
+fi
+exec bun run gate

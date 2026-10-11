@@ -1,0 +1,4 @@
+node_modules/
+.DS_Store
+# Local-only: hooks point at paths on the maintainer machine.
+.claude/

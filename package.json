@@ -1,0 +1,9 @@
+{
+  "name": "omnixenon-skills",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gate": "bun scripts/gate.ts",
+    "hooks": "git config core.hooksPath .githooks"
+  }
+}

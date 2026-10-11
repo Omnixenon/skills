@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# The cheap half of the gate: tree audit and caps on the index being committed (~1s). The full gate runs at pre-push.
+set -e
+# A linked worktree exports GIT_DIR into hooks, and it outranks cwd; GIT_INDEX_FILE stays (commit -a's index).
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_PREFIX
+if ! command -v bun >/dev/null 2>&1; then
+  echo "✖ pre-commit: REFUSED — bun is not installed, so the audit cannot run." >&2
+  exit 1
+fi
+exec bun scripts/gate.ts --staged

@@ -1,0 +1,12 @@
+{
+  "name": "omnixenon",
+  "description": "Agent skills by Omnixenon",
+  "owner": { "name": "Omnixenon", "url": "https://github.com/Omnixenon" },
+  "plugins": [
+    {
+      "name": "omnixenon-skills",
+      "source": "./",
+      "description": "read-back and other small agent skills"
+    }
+  ]
+}
